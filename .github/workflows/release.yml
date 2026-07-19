@@ -1,0 +1,58 @@
+name: Stable Folder Release by Filename
+
+on:
+  push:
+    paths:
+      - 'stable/**'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create releases
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Fetch history to check changed file names
+
+      - name: Extract Version from Filename
+        id: get_version
+        run: |
+          # Get the list of changed files in the stable folder
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '^stable/' || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes detected in stable/ folder."
+            exit 0
+          fi
+          
+          echo "Changed files detected:"
+          echo "$CHANGED_FILES"
+          
+          # Scan the filenames for the pattern vX or vX.X.X
+          # Matches 'v' followed by digits, or 'v' followed by semantic versioning (e.g., v1, v1.2.3)
+          VERSION=$(echo "$CHANGED_FILES" | grep -oE '\bv[0-9]+(\.[0-9]+\.[0-9]+)?\b' | head -n 1)
+          
+          if [ -z "$VERSION" ]; then
+            echo "::error::No matching version pattern (vX or vX.X.X) found in the modified filename(s)."
+            exit 1
+          fi
+          
+          echo "Extracted version from filename: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.get_version.outputs.version != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            Automated release triggered by new item in the `/stable` directory.
+            Target file matched: ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
