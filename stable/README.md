@@ -1,7 +1,7 @@
 # ev3-code
 
-> [!CAUTION]
-> You are in an unstable folder. The "stable" name is a historical placeholder, and most of our actual stable code is located in the `PIN NG` folder. Stability and performance issues may arise when inspecting this code.
+> [!WARNING]
+> Alone in this root directory, the code files in the stable directory are not of a stable state at all. The "stable" name is a historical placeholder, and most of our actual stable code is located in the `PIN NG` folder inside the `stable` folder. Stability and performance issues may arise when inspecting this code.
 
 > [!NOTE]
 > Due to the difficulty of using source controlled Git with EV3 binaries, most updates are tracked via GitHub releases and a file naming scheme.
